@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NGL Viewer - nCGA Complexes</title>
+  <script src="https://unpkg.com/ngl@latest/dist/ngl.js"></script>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: sans-serif;
+    }
+    #viewport {
+      width: 100%;
+      height: 90%;
+    }
+    #controls {
+      height: 10%;
+      padding: 10px;
+      background: #f0f0f0;
+    }
+    select, button {
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="controls">
+    <label for="structureSelect">選擇結構：</label>
+    <select id="structureSelect">
+      <option value="NFKB_nCGA_6.8.complex.pdb">NFKB_nCGA_6.8</option>
+      <option value="NFKB_nCGA_6.9.complex.pdb">NFKB_nCGA_6.9</option>
+      <option value="NFKB_nCGA_7.2.complex.pdb">NFKB_nCGA_7.2</option>
+    </select>
+
+    <button onclick="stage.autoView()">置中</button>
+    <button onclick="stage.toggleSpin()">旋轉</button>
+    <button onclick="stage.viewerControls.zoom(0.5)">放大</button>
+    <button onclick="stage.viewerControls.zoom(-0.5)">縮小</button>
+  </div>
+
+  <div id="viewport"></div>
+
+  <script>
+    const stage = new NGL.Stage("viewport");
+    let currentComponent = null;
+
+    async function loadStructure(fileName) {
+      if (currentComponent) {
+        currentComponent.removeRepresentation();
+        currentComponent.remove();
+      }
+
+      const fileUrl = `https://raw.githubusercontent.com/taison990/nCGA_Complex-v2/main/${fileName}`;
+
+      currentComponent = await stage.loadFile(fileUrl, { defaultRepresentation: false });
+
+      // 加上 cartoon 表示蛋白質
+      currentComponent.addRepresentation("cartoon", {
+        sele: "protein",
+        color: "chainid"
+      });
+
+      // 非蛋白質用 ball+stick
+      currentComponent.addRepresentation("ball+stick", {
+        sele: "not protein",
+        color: "element"
+      });
+
+      stage.autoView();
+    }
+
+    // 預設載入第一個結構
+    loadStructure(document.getElementById("structureSelect").value);
+
+    // 切換選單時載入對應結構
+    document.getElementById("structureSelect").addEventListener("change", (e) => {
+      loadStructure(e.target.value);
+    });
+  </script>
+
+</body>
+</html>
