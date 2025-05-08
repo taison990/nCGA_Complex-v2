@@ -19,9 +19,13 @@
       height: 10%;
       padding: 10px;
       background: #f0f0f0;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
     }
-    select, button {
+    select, button, label {
       margin-right: 10px;
+      margin-bottom: 5px;
     }
   </style>
 </head>
@@ -35,6 +39,14 @@
       <option value="NFKB_nCGA_7.2.complex.pdb">NFKB_nCGA_7.2</option>
     </select>
 
+    <label for="colorSelect">蛋白質著色：</label>
+    <select id="colorSelect">
+      <option value="chainid">依鏈 (chainid)</option>
+      <option value="residueindex">依殘基 (residueindex)</option>
+      <option value="element">依原子 (element)</option>
+      <option value="uniform">單色 (uniform)</option>
+    </select>
+
     <button onclick="stage.autoView()">置中</button>
     <button onclick="stage.toggleSpin()">旋轉</button>
     <button onclick="stage.viewerControls.zoom(0.5)">放大</button>
@@ -43,37 +55,46 @@
 
   <div id="viewport"></div>
 
-<script>
-  const stage = new NGL.Stage("viewport");
+  <script>
+    const stage = new NGL.Stage("viewport");
 
-  async function loadStructure(fileName) {
-    stage.removeAllComponents();  // 強制移除所有舊元件
+    async function loadStructure(fileName) {
+      stage.removeAllComponents();
 
-    const fileUrl = `https://raw.githubusercontent.com/taison990/nCGA_Complex-v2/main/${fileName}`;
-    const component = await stage.loadFile(fileUrl, { defaultRepresentation: false });
+      const fileUrl = `https://raw.githubusercontent.com/taison990/nCGA_Complex-v2/main/${fileName}`;
+      const component = await stage.loadFile(fileUrl, { defaultRepresentation: false });
 
-    component.addRepresentation("cartoon", {
-      sele: "protein",
-      color: "chainid"
+      const proteinColor = document.getElementById("colorSelect").value;
+
+      component.addRepresentation("cartoon", {
+        sele: "protein",
+        color: proteinColor === "uniform" ? "red" : proteinColor
+      });
+
+      component.addRepresentation("ball+stick", {
+        sele: "not protein",
+        color: "element"
+      });
+
+      stage.autoView();
+    }
+
+    // 初始載入第一個結構
+    const structureSelect = document.getElementById("structureSelect");
+    const colorSelect = document.getElementById("colorSelect");
+
+    loadStructure(structureSelect.value);
+
+    // 結構變更
+    structureSelect.addEventListener("change", () => {
+      loadStructure(structureSelect.value);
     });
 
-    component.addRepresentation("ball+stick", {
-      sele: "not protein",
-      color: "element"
+    // 顏色變更
+    colorSelect.addEventListener("change", () => {
+      loadStructure(structureSelect.value);
     });
-
-    stage.autoView();
-  }
-
-  // 預設載入第一個結構
-  loadStructure(document.getElementById("structureSelect").value);
-
-  // 切換選單時載入對應結構
-  document.getElementById("structureSelect").addEventListener("change", (e) => {
-    loadStructure(e.target.value);
-  });
-</script>
-
+  </script>
 
 </body>
 </html>
