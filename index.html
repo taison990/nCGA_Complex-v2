@@ -43,43 +43,37 @@
 
   <div id="viewport"></div>
 
-  <script>
-    const stage = new NGL.Stage("viewport");
-    let currentComponent = null;
+<script>
+  const stage = new NGL.Stage("viewport");
 
-    async function loadStructure(fileName) {
-      if (currentComponent) {
-        currentComponent.removeRepresentation();
-        currentComponent.remove();
-      }
+  async function loadStructure(fileName) {
+    stage.removeAllComponents();  // 強制移除所有舊元件
 
-      const fileUrl = `https://raw.githubusercontent.com/taison990/nCGA_Complex-v2/main/${fileName}`;
+    const fileUrl = `https://raw.githubusercontent.com/taison990/nCGA_Complex-v2/main/${fileName}`;
+    const component = await stage.loadFile(fileUrl, { defaultRepresentation: false });
 
-      currentComponent = await stage.loadFile(fileUrl, { defaultRepresentation: false });
-
-      // 加上 cartoon 表示蛋白質
-      currentComponent.addRepresentation("cartoon", {
-        sele: "protein",
-        color: "chainid"
-      });
-
-      // 非蛋白質用 ball+stick
-      currentComponent.addRepresentation("ball+stick", {
-        sele: "not protein",
-        color: "element"
-      });
-
-      stage.autoView();
-    }
-
-    // 預設載入第一個結構
-    loadStructure(document.getElementById("structureSelect").value);
-
-    // 切換選單時載入對應結構
-    document.getElementById("structureSelect").addEventListener("change", (e) => {
-      loadStructure(e.target.value);
+    component.addRepresentation("cartoon", {
+      sele: "protein",
+      color: "chainid"
     });
-  </script>
+
+    component.addRepresentation("ball+stick", {
+      sele: "not protein",
+      color: "element"
+    });
+
+    stage.autoView();
+  }
+
+  // 預設載入第一個結構
+  loadStructure(document.getElementById("structureSelect").value);
+
+  // 切換選單時載入對應結構
+  document.getElementById("structureSelect").addEventListener("change", (e) => {
+    loadStructure(e.target.value);
+  });
+</script>
+
 
 </body>
 </html>
